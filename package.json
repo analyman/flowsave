@@ -1,0 +1,16 @@
+{
+  "name": "flowsave",
+  "version": "0.0.1",
+  "description": "save traffic to file that send from client and server",
+  "main": "./src",
+  "scripts": {
+    "test": "cd dist && node main.js -l 127.0.0.1:8888 -c 127.0.0.1:80"
+  },
+  "author": "analyman",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^13.9.8",
+    "node-getopt": "^0.3.2",
+    "winston": "^3.2.1"
+  }
+}

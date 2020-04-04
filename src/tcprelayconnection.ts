@@ -49,7 +49,7 @@ export class RelayConnection extends event.EventEmitter {
         }
         this.out_traffic_save = fs.createWriteStream("", {fd: fd});
 
-        this.sockets_readable_setup();
+        this.sockets_relay_setup();
         this.sockets_error_setup();
         this.sockets_connect_setup();
         this.sockets_end_setup();
@@ -73,13 +73,49 @@ export class RelayConnection extends event.EventEmitter {
         this.close_session(true);
     } //}
 
-    private sockets_readable_setup() //{
+    private sockets_relay_setup() //{
     {
+        let in_lock:  boolean = false;
+        let out_lock: boolean = false;
+
+        let func_write_out = () => {
+            let buf: Buffer;
+            while (true) {
+                if (out_lock)
+                    return;
+                buf = this.in_socket.read();
+                if (buf == null)
+                    return;
+                out_lock = !this.out_socket.write(buf);
+                this.in_traffic_save.write(buf);
+            }
+        };
         this.in_socket.on("readable", () => {
-            this.forward(this.in_socket, this.out_socket, this.in_traffic_save);
+            func_write_out();
         });
+        this.out_socket.on("drain", () => {
+            out_lock = false;
+            func_write_out();
+        });
+
+        let func_write_in = () => {
+            let buf: Buffer;
+            while (true) {
+                if (in_lock)
+                    return;
+                buf = this.out_socket.read();
+                if (buf == null)
+                    return;
+                in_lock = !this.in_socket.write(buf);
+                this.out_traffic_save.write(buf);
+            }
+        };
         this.out_socket.on("readable", () => {
-            this.forward(this.out_socket, this.in_socket, this.out_traffic_save);
+            func_write_in();
+        });
+        this.in_socket.on("drain", () => {
+            in_lock = false;
+            func_write_in();
         });
     } //}
     private sockets_end_setup() //{
@@ -115,14 +151,5 @@ export class RelayConnection extends event.EventEmitter {
         let hh = (err: Error) => this.emit("error", err);
         this. in_traffic_save.on("error", hh);
         this.out_traffic_save.on("error", hh);
-    } //}
-
-    private forward(socketr: net.Socket, socketw: net.Socket, wstream: stream.Writable) //{
-    {
-        let buf;
-        while(null != (buf = socketr.read())) {
-            socketw.write(buf);
-            wstream.write(buf);
-        }
     } //}
 };

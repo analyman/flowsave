@@ -1,13 +1,18 @@
 {
-    "version": "2.0.2",
+    "version": "3.8.0",
     "compilerOptions": {
         "lib": ["es2015"],
         "target": "es2019",
         "module": "commonjs",
         "rootDirs": ["./"],
         "typeRoots": [
-            "node_modules/@types"
+            "node_modules/@types",
+            "release/@types"
         ],
+        "baseUrl": "./",
+        "paths": {
+            "*": ["release/*"]
+        },
         "outDir": "dist",
         "moduleResolution": "node",
         "emitDecoratorMetadata": true,

@@ -1,3 +1,6 @@
 # node project
 dist/*
 node_modules/*
+release/*
+testme/*
+gulpfile.js
